@@ -16,6 +16,27 @@ import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
 import StarWarsApp from './components/StarWarsApp';
 import StarWarsAppHomeRoute from './routes/StarWarsAppHomeRoute';
+import angular from 'angular';
+import starWarsApp from './components/NgStarWarsApp';
+
+angular.module('ngStarWars', ['starWarsApp'])
+.directive('app',app);
+
+function app(){
+  return {
+            restrict: 'E',
+            scope: {
+            },
+            template: '<div>Hello World<star-wars-app></star-wars-app></div>',
+            bindToController: true,
+            controllerAs: 'vm',
+            controller: controllerFn
+      };
+
+      function controllerFn($scope) {
+          const vm = this;
+  }
+}
 
 ReactDOM.render(
   <Relay.RootContainer
