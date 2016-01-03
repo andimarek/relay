@@ -29,9 +29,11 @@ const getRelayQueries = require('getRelayQueries');
 const mapObject = require('mapObject');
 
 export type ContainerDataState = {
-  // aborted: boolean;
   done: boolean;
-  // error: ?Error;
+  ready: boolean;
+  stale: boolean;
+  aborted: boolean;
+  error?: ?Error;
   data: {[key: string]: mixed}
 };
 export type ContainerCallback = (state: ContainerDataState) => void;
@@ -83,14 +85,13 @@ class GenericRelayRootContainer {
       if (readyState.aborted || readyState.done || readyState.error) {
         this.pendingRequest = null;
       }
-      if (readyState.done) {
-        const props = {
+      if (readyState.ready) {
+        const data = {
           route: this.queryConfig,
           ...this.queryConfig.params,
           ...mapObject(querySet, createFragmentPointerForRoot),
         };
-        this.callback({done:true, data: props});
-        // this._createSubComponent();
+        this.callback({data, ...readyState});
       }
     };
 

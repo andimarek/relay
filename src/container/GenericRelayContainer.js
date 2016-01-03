@@ -166,7 +166,7 @@ function createContainerComponent(
 
     setState(state: any) {
       this.state = state;
-      this.callback({data:this.state.queryData, done:true});
+      this.callback({data:this.state.queryData, done:true, ready: true, stale:false, aborted: false});
     }
 
 
@@ -286,7 +286,6 @@ function createContainerComponent(
       }
 
       var onReadyStateChange = readyState => {
-        console.log('readyState: ' + JSON.stringify(readyState));
         var {aborted, done, error, ready} = readyState;
         var isComplete = aborted || done || error;
         if (isComplete && this.pending === current) {
@@ -377,10 +376,7 @@ function createContainerComponent(
 
     _handleFragmentDataUpdate(): void {
       var queryData = this._getQueryData(this.props);
-      var updateProfiler = RelayProfiler.profile(
-        'RelayContainer.handleFragmentDataUpdate'
-      );
-      this.setState({queryData}, updateProfiler.stop);
+      this.setState({queryData});
     }
 
     _updateFragmentPointers(
@@ -520,42 +516,42 @@ function createContainerComponent(
       return queryData;
     }
 
-    shouldComponentUpdate(
-      nextProps: Object,
-      nextState: any,
-      nextContext: any
-    ): boolean {
-      // Flag indicating that query data changed since previous render.
-      if (this._hasStaleQueryData) {
-        this._hasStaleQueryData = false;
-        return true;
-      }
-
-      if (this.context.route !== nextContext.route) {
-        return true;
-      }
-
-      var fragmentPointers = this._fragmentPointers;
-      return (
-        !RelayContainerComparators.areNonQueryPropsEqual(
-          fragments,
-          this.props,
-          nextProps
-        ) ||
-        (
-          fragmentPointers &&
-          !RelayContainerComparators.areQueryResultsEqual(
-            fragmentPointers,
-            this.state.queryData,
-            nextState.queryData
-          )
-        ) ||
-        !RelayContainerComparators.areQueryVariablesEqual(
-          this.state.variables,
-          nextState.variables
-        )
-      );
-    }
+    // shouldComponentUpdate(
+    //   nextProps: Object,
+    //   nextState: any,
+    //   nextContext: any
+    // ): boolean {
+    //   // Flag indicating that query data changed since previous render.
+    //   if (this._hasStaleQueryData) {
+    //     this._hasStaleQueryData = false;
+    //     return true;
+    //   }
+    //
+    //   if (this.context.route !== nextContext.route) {
+    //     return true;
+    //   }
+    //
+    //   var fragmentPointers = this._fragmentPointers;
+    //   return (
+    //     !RelayContainerComparators.areNonQueryPropsEqual(
+    //       fragments,
+    //       this.props,
+    //       nextProps
+    //     ) ||
+    //     (
+    //       fragmentPointers &&
+    //       !RelayContainerComparators.areQueryResultsEqual(
+    //         fragmentPointers,
+    //         this.state.queryData,
+    //         nextState.queryData
+    //       )
+    //     ) ||
+    //     !RelayContainerComparators.areQueryVariablesEqual(
+    //       this.state.variables,
+    //       nextState.variables
+    //     )
+    //   );
+    // }
 
 }
 

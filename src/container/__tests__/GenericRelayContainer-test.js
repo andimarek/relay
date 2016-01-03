@@ -123,4 +123,26 @@ describe('GenericRelayContainer', () => {
 
     expect(updateCallback.mock.calls.length).toBe(2);
   });
+
+  it('calls callback when data is changed in the store', () => {
+    const updateCallback = jest.genMockFunction();
+    const container = new MockContainer({}, updateCallback);
+
+    var mockData = {__dataID__: '42', id: '42', name: 'Tim'};
+
+    GraphQLStoreQueryResolver.mockDefaultResolveImplementation(() => mockData);
+
+    container.update({foo: mockFooPointer, route:mockRoute});
+
+    var mockResolvers = GraphQLStoreQueryResolver.mock.instances;
+    mockResolvers[0].mock.callback();
+
+    expect(mockResolvers.length).toBe(1);
+    expect(mockResolvers[0].reset.mock.calls.length).toBe(0);
+    expect(mockResolvers[0].resolve.mock.calls.length).toBe(2);
+
+    expect(updateCallback.mock.calls.length).toBe(2);
+    expect(updateCallback.mock.calls[1][0].data.foo).toBe(mockData);
+
+  });
 });
