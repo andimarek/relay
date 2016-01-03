@@ -53,7 +53,7 @@ var RelayPublic = {
   injectTaskScheduler: RelayTaskScheduler.injectScheduler,
   isContainer: isRelayContainer,
   GenericRootContainer: GenericRelayRootContainer,
-  GenericContainer: GenericRelayContainer
+  GenericContainer: GenericRelayContainer,
 };
 
 module.exports = RelayPublic;

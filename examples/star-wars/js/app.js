@@ -33,12 +33,14 @@ function app() {
     controller: controllerFn
   };
 
-  function controllerFn($scope) {
+  function controllerFn($scope, $rootScope) {
     const vm = this;
-    // vm.relayProps = {hello: 'World'};
     const route = new StarWarsAppHomeRoute({
       factionNames: ['empire', 'rebels'],
     });
+    $rootScope.route = route;
+
+
     const rootContainer = new Relay.GenericRootContainer(NgStarWarsApp, false, route);
     rootContainer.activate(({data}) => {
       console.log('activate callback called ');

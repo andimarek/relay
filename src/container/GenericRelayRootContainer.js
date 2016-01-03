@@ -100,15 +100,6 @@ class GenericRelayRootContainer {
     this.pendingRequest = request;
   }
 
-    //
-    // _createSubComponent(): mixed {
-    //   var Component = this.Component;
-    //   var instance =  new Component({}, {route:this.queryConfig});
-    //   return instance;
-    // }
-    //
-
-
   // _shouldUpdate(): boolean {
   //   const {activeComponent, activeQueryConfig} = this.state;
   //   return (

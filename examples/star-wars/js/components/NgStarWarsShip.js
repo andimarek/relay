@@ -46,9 +46,6 @@ function starWarsShip() {
   };
 
   function controllerFn($scope, $rootScope) {
-    const route = new StarWarsAppHomeRoute({
-      factionNames: ['empire', 'rebels'],
-    });
     const updateCallback = (state) => {
       if (!$rootScope.$$phase) {
         $scope.$apply(() => {this.relayData = state.data;});
@@ -56,12 +53,12 @@ function starWarsShip() {
         this.relayData = state.data;
       }
     };
-    const starWarsShip = new StarWarsShipComponent({route}, updateCallback);
+    const starWarsShip = new StarWarsShipComponent({route: $rootScope.route}, updateCallback);
     $scope.$watch('vm.ship', (newValue, oldValue) => {
       if (newValue == null) {
         return;
       }
-      starWarsShip.update({ship: this.ship, route});
+      starWarsShip.update({ship: this.ship, route: $rootScope.route});
     },
     false);
   }
