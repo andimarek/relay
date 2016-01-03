@@ -54,14 +54,22 @@ describe('GenericRelayContainer', () => {
 
   it('creates resolvers for each query prop with a fragment pointer', () => {
     const updateCallback = jest.genMockFunction();
-    const container = new MockContainer({},
-      updateCallback);
+    const container = new MockContainer({}, updateCallback);
     container.update({foo: mockFooPointer, route:mockRoute});
 
     expect(GraphQLStoreQueryResolver.mock.instances.length).toBe(1);
 
     container.update({foo: mockFooPointer, bar: [mockBarPointer], route:mockRoute});
     expect(GraphQLStoreQueryResolver.mock.instances.length).toBe(2);
+  });
+
+  it('update calls callback', () => {
+    const updateCallback = jest.genMockFunction();
+    const container = new MockContainer({}, updateCallback);
+    container.update({foo: mockFooPointer, route:mockRoute});
+
+    expect(updateCallback).toBeCalled();
+
   });
 
   it('creates query for a container with variables', () => {
