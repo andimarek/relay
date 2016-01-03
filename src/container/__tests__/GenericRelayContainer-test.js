@@ -27,6 +27,7 @@ describe('GenericRelayContainer', () => {
   var {getNode, getPointer} = RelayTestUtils;
 
   beforeEach(() => {
+    jest.resetModuleRegistry();
     MockComponent = {
 
     };
@@ -69,7 +70,6 @@ describe('GenericRelayContainer', () => {
     container.update({foo: mockFooPointer, route:mockRoute});
 
     expect(updateCallback).toBeCalled();
-
   });
 
   it('creates query for a container with variables', () => {
@@ -98,5 +98,29 @@ describe('GenericRelayContainer', () => {
         }
       }
     `));
+  });
+
+  it('update variables', () => {
+    var Container = Relay.GenericContainer.create(MockComponent, {
+      initialVariables: {
+        testPhotoSize: '100',
+      },
+      fragments: {
+        photo: () => Relay.QL`
+          fragment on Actor {
+            profilePicture(size:$testPhotoSize) {
+              uri
+            }
+          }
+        `,
+      },
+    });
+    const updateCallback = jest.genMockFunction();
+    const container = new Container({}, updateCallback);
+    container.update({route: mockRoute});
+    container.setVariables({testPhotoSize: 200});
+    Relay.Store.primeCache.mock.requests[0].succeed();
+
+    expect(updateCallback.mock.calls.length).toBe(2);
   });
 });

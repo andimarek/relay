@@ -43,7 +43,6 @@ function app() {
 
     const rootContainer = new Relay.GenericRootContainer(NgStarWarsApp, false, route);
     rootContainer.activate(({data}) => {
-      console.log('activate callback called ');
       $scope.$apply(() => {
         vm.relayProps = data;
       });

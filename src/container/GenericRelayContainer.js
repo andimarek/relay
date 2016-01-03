@@ -194,10 +194,9 @@ function createContainerComponent(
      * becomes ready, the component will be updated.
      */
     setVariables(
-      partialVariables?: ?Variables,
-      callback?: ?ComponentReadyStateChangeCallback
+      partialVariables?: ?Variables
     ): void {
-      this._runVariables(partialVariables, callback, false);
+      this._runVariables(partialVariables, false);
     }
 
     /**
@@ -206,10 +205,9 @@ function createContainerComponent(
      * previously satisfied the queries will be overwritten.
      */
     forceFetch(
-      partialVariables?: ?Variables,
-      callback?: ?ComponentReadyStateChangeCallback
+      partialVariables?: ?Variables
     ): void {
-      this._runVariables(partialVariables, callback, true);
+      this._runVariables(partialVariables, true);
     }
 
     /**
@@ -269,7 +267,6 @@ function createContainerComponent(
 
     _runVariables(
       partialVariables: ?Variables,
-      callback: ?ComponentReadyStateChangeCallback,
       forceFetch: boolean
     ): void {
       var lastVariables = this.state.variables;
@@ -277,13 +274,6 @@ function createContainerComponent(
       var nextVariables = mergeVariables(prevVariables, partialVariables);
 
       this.pending && this.pending.request.abort();
-
-      var completeProfiler = RelayProfiler.profile(
-        'RelayContainer.setVariables', {
-          containerName,
-          nextVariables,
-        }
-      );
 
       // If variables changed or we are force-fetching, we need to build a new
       // set of queries that includes the updated variables. Because the pending
@@ -295,53 +285,28 @@ function createContainerComponent(
           this._createQuerySetAndFragmentPointers(nextVariables));
       }
 
-      // var onReadyStateChange = ErrorUtils.guard(readyState => {
-      //   var {aborted, done, error, ready} = readyState;
-      //   var isComplete = aborted || done || error;
-      //   if (isComplete && this.pending === current) {
-      //     this.pending = null;
-      //   }
-      //   var partialState;
-      //   if (ready && fragmentPointers) {
-      //     // Only update query data if variables changed. Otherwise, `querySet`
-      //     // and `fragmentPointers` will be empty, and `nextVariables` will be
-      //     // equal to `lastVariables`.
-      //     this._fragmentPointers = fragmentPointers;
-      //     this._updateQueryResolvers();
-      //     var queryData = this._getQueryData(this.props);
-      //     partialState = {variables: nextVariables, queryData};
-      //   } else {
-      //     partialState = {};
-      //   }
-      //   var active = this.active;
-      //   if (active) {
-      //     var updateProfiler = RelayProfiler.profile('RelayContainer.update');
-      //     ReactDOM.unstable_batchedUpdates(() => {
-      //       this.setState(partialState, () => {
-      //         updateProfiler.stop();
-      //         if (isComplete) {
-      //           completeProfiler.stop();
-      //         }
-      //       });
-      //       if (callback) {
-      //         callback.call(
-      //           this.refs.component || null,
-      //           {...readyState}
-      //         );
-      //       }
-      //     });
-      //   } else {
-      //     if (callback) {
-      //       callback({...readyState, mounted});
-      //     }
-      //     if (isComplete) {
-      //       completeProfiler.stop();
-      //     }
-      //   }
-      // }, 'RelayContainer.onReadyStateChange');
+      var onReadyStateChange = readyState => {
+        console.log('readyState: ' + JSON.stringify(readyState));
+        var {aborted, done, error, ready} = readyState;
+        var isComplete = aborted || done || error;
+        if (isComplete && this.pending === current) {
+          this.pending = null;
+        }
+        var partialState;
+        if (ready && fragmentPointers) {
+          // Only update query data if variables changed. Otherwise, `querySet`
+          // and `fragmentPointers` will be empty, and `nextVariables` will be
+          // equal to `lastVariables`.
+          this._fragmentPointers = fragmentPointers;
+          this._updateQueryResolvers();
+          var queryData = this._getQueryData(this.props);
+          partialState = {variables: nextVariables, queryData};
+        } else {
+          partialState = {};
+        }
+        this.setState(partialState);
 
-      var onReadyStateChange = ErrorUtils.guard(readyState => {
-      });
+      };
 
       var current = {
         variables: nextVariables,
