@@ -13,107 +13,101 @@
 
 'use strict';
 
-const GraphQLFragmentPointer = require('GraphQLFragmentPointer');
-import type {RelayQueryConfigSpec} from 'RelayContainer';
-const RelayPropTypes = require('RelayPropTypes');
-const RelayStore = require('RelayStore');
-const RelayStoreData = require('RelayStoreData');
 import type {
   Abortable,
   ComponentReadyState,
   ReadyState,
   RelayContainer,
 } from 'RelayTypes';
+import type {RelayQueryConfigSpec} from 'RelayContainer';
+
+const GraphQLFragmentPointer = require('GraphQLFragmentPointer');
+const RelayStore = require('RelayStore');
+const RelayStoreData = require('RelayStoreData');
 
 const getRelayQueries = require('getRelayQueries');
-const invariant = require('invariant');
 const mapObject = require('mapObject');
 
+export type ContainerDataState = {
+  // aborted: boolean;
+  done: boolean;
+  // error: ?Error;
+  data: {[key: string]: mixed}
+};
+export type ContainerCallback = (state: ContainerDataState) => void;
 
-class GenericRelayRootContainer{
 
-  constructor({
-    Component,
-    forceFetch,
-    queryConfig
-  }){
-    this.props = {Component,forceFetch,queryConfig};
+class GenericRelayRootContainer {
+  Component: any;
+  queryConfig: RelayQueryConfigSpec;
+  forceFetch: boolean;
+  callback: ContainerCallback;
+
+  active: boolean;
+  pendingRequest: ?Abortable;
+
+
+  constructor(Component: any, forceFetch: boolean,  queryConfig: RelayQueryConfigSpec) {
+    this.Component = Component;
+    this.forceFetch = forceFetch;
+    this.queryConfig = queryConfig;
   }
 
-  setState(state){
-    this.state = state;
-  }
 
-  activate(){
-    if (this.active){
+  activate(callback: ContainerCallback): void {
+    if (this.active) {
       return;
     }
-    this.state = this._runQueries(this.props);
     this.active = true;
+    this.callback = callback;
+    this._runQueries();
   }
-
   cleanup(): void {
-    if (this.state.pendingRequest) {
-      this.state.pendingRequest.abort();
+    if (this.pendingRequest) {
+      this.pendingRequest.abort();
     }
     this.active = false;
   }
 
 
-  _runQueries(
-    {Component, forceFetch, queryConfig}: RelayRendererProps
-  ) {
-    const querySet = getRelayQueries(Component, queryConfig);
+  _runQueries() {
+    const querySet = getRelayQueries(this.Component, this.queryConfig);
     const onReadyStateChange = readyState => {
       if (!this.active) {
-        this._handleReadyStateChange({...readyState, active: false});
         return;
       }
-      let {pendingRequest, renderArgs: {props}} = this.state;
-      if (request !== pendingRequest) {
+      if (request !== this.pendingRequest) {
         // Ignore (abort) ready state if we have a new pending request.
         return;
       }
       if (readyState.aborted || readyState.done || readyState.error) {
-        pendingRequest = null;
+        this.pendingRequest = null;
       }
-      if (readyState.ready && !props) {
-        props = {
-          ...queryConfig.params,
+      if (readyState.done) {
+        const props = {
+          route: this.queryConfig,
+          ...this.queryConfig.params,
           ...mapObject(querySet, createFragmentPointerForRoot),
         };
+        this.callback({done:true, data: props});
+        // this._createSubComponent();
       }
-      this.setState({
-        activeComponent: Component,
-        activeQueryConfig: queryConfig,
-        pendingRequest,
-        readyState: {...readyState, active: true},
-        renderArgs: {
-          done: readyState.done,
-          error: readyState.error,
-          props,
-          stale: readyState.stale,
-        },
-      });
     };
 
-    const request = forceFetch ?
+    const request = this.forceFetch ?
       RelayStore.forceFetch(querySet, onReadyStateChange) :
       RelayStore.primeCache(querySet, onReadyStateChange);
-
-    return {
-      activeComponent: this.state ? this.state.activeComponent : null,
-      activeQueryConfig: this.state ? this.state.activeQueryConfig : null,
-      pendingRequest: request,
-      readyState: null,
-      renderArgs: {
-        done: false,
-        error: null,
-        props: null,
-        stale: false,
-      },
-    };
+    this.pendingRequest = request;
   }
+
+    //
+    // _createSubComponent(): mixed {
+    //   var Component = this.Component;
+    //   var instance =  new Component({}, {route:this.queryConfig});
+    //   return instance;
+    // }
+    //
+
 
   // _shouldUpdate(): boolean {
   //   const {activeComponent, activeQueryConfig} = this.state;
@@ -159,16 +153,6 @@ class GenericRelayRootContainer{
   //     }
   //   }
   // }
-
-  /**
-   * @private
-   */
-  _handleReadyStateChange(readyState: ReadyState): void {
-    const {onReadyStateChange} = this.props;
-    if (onReadyStateChange) {
-      onReadyStateChange(readyState);
-    }
-  }
 
 
 

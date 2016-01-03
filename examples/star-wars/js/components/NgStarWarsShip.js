@@ -13,40 +13,59 @@
 
 import Relay from 'react-relay';
 import angular from 'angular';
+import StarWarsAppHomeRoute from '../routes/StarWarsAppHomeRoute';
 
-angular.module('starWarsShip',[])
-.directive('starWarsShip',starWarsShip);
+angular.module('starWarsShip', [])
+.directive('starWarsShip', starWarsShip);
 
-function starWarsShip(){
+const Component = {
+  name: 'StarWarsShip',
+};
+
+const StarWarsShipComponent = Relay.GenericContainer.create(Component, {
+  fragments: {
+    ship: () => Relay.QL`
+       fragment on Ship {
+         name
+       }
+    `,
+  },
+});
+
+
+function starWarsShip() {
   return {
     restrict: 'E',
-    scope: {
+    scope: {},
+    bindToController: {
+      ship: '=',
     },
-    template: '<div>Ship Name</div>',
-    bindToController: true,
     controllerAs: 'vm',
-    controller: controllerFn
+    controller: controllerFn,
+    template: '<div>Ship Name {{vm.relayData.ship.name}}</div>',
   };
 
-    function controllerFn($scope) {
-      const vm = this;
-    }
+  function controllerFn($scope, $rootScope) {
+    const route = new StarWarsAppHomeRoute({
+      factionNames: ['empire', 'rebels'],
+    });
+    const updateCallback = (state) => {
+      if (!$rootScope.$$phase) {
+        $scope.$apply(() => {this.relayData = state.data;});
+      }else {
+        this.relayData = state.data;
+      }
+    };
+    const starWarsShip = new StarWarsShipComponent({route}, updateCallback);
+    $scope.$watch('vm.ship', (newValue, oldValue) => {
+      if (newValue == null) {
+        return;
+      }
+      starWarsShip.update({ship: this.ship, route});
+    },
+    false);
+  }
 }
 
 
-// class StarWarsShip extends React.Component {
-//   render() {
-//     var {ship} = this.props;
-//     return <div>{ship.name}</div>;
-//   }
-// }
-//
-// export default Relay.createContainer(StarWarsShip, {
-//   fragments: {
-//     ship: () => Relay.QL`
-//       fragment on Ship {
-//         name
-//       }
-//     `,
-//   },
-// });
+export default StarWarsShipComponent;

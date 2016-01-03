@@ -15,35 +15,47 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
 import StarWarsApp from './components/StarWarsApp';
+import NgStarWarsApp from './components/NgStarWarsApp';
 import StarWarsAppHomeRoute from './routes/StarWarsAppHomeRoute';
 import angular from 'angular';
-import starWarsApp from './components/NgStarWarsApp';
 
 angular.module('ngStarWars', ['starWarsApp'])
-.directive('app',app);
+.directive('app', app);
 
-function app(){
+function app() {
   return {
-            restrict: 'E',
-            scope: {
-            },
-            template: '<div>Hello World<star-wars-app></star-wars-app></div>',
-            bindToController: true,
-            controllerAs: 'vm',
-            controller: controllerFn
-      };
+    restrict: 'E',
+    scope: {
+    },
+    template: '<div>Hello World<star-wars-app relay-props="vm.relayProps"></star-wars-app></div>',
+    bindToController: true,
+    controllerAs: 'vm',
+    controller: controllerFn
+  };
 
-      function controllerFn($scope) {
-          const vm = this;
+  function controllerFn($scope) {
+    const vm = this;
+    // vm.relayProps = {hello: 'World'};
+    const route = new StarWarsAppHomeRoute({
+      factionNames: ['empire', 'rebels'],
+    });
+    const rootContainer = new Relay.GenericRootContainer(NgStarWarsApp, false, route);
+    rootContainer.activate(({data}) => {
+      console.log('activate callback called ');
+      $scope.$apply(() => {
+        vm.relayProps = data;
+      });
+    });
+
   }
 }
 
-ReactDOM.render(
-  <Relay.RootContainer
-    Component={StarWarsApp}
-    route={new StarWarsAppHomeRoute({
-      factionNames: ['empire', 'rebels'],
-    })}
-  />,
-  document.getElementById('root')
-);
+// ReactDOM.render(
+//   <Relay.RootContainer
+//     Component={StarWarsApp}
+//     route={new StarWarsAppHomeRoute({
+//       factionNames: ['empire', 'rebels'],
+//     })}
+//   />,
+//   document.getElementById('root')
+// );

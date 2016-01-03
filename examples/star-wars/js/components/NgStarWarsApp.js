@@ -11,19 +11,18 @@
  */
 
 import Relay from 'react-relay';
-import StarWarsShip from './NgStarWarsShip';
 import angular from 'angular';
-import starWarsShip from './NgStarWarsShip';
-import StarWarsAppHomeRoute from '../routes/StarWarsAppHomeRoute';
-var mapObject = require('fbjs/lib/mapObject');
 
+import StarWarsShip from './NgStarWarsShip';
 
-angular.module('starWarsApp',['starWarsShip'])
-.directive('starWarsApp',starWarsApp);
+angular.module('starWarsApp', ['starWarsShip'])
+ .directive('starWarsApp', starWarsApp);
 
 var Component = {
   name: 'StarWarsApp',
-}
+  starWarsShips: StarWarsShip,
+};
+
 const StarWarsAppComponent = Relay.GenericContainer.create(Component, {
   fragments: {
     factions: () => Relay.QL`
@@ -32,7 +31,7 @@ const StarWarsAppComponent = Relay.GenericContainer.create(Component, {
         ships(first: 10) {
           edges {
             node {
-              id
+              ${StarWarsShip.getFragment('ship')}
             }
           }
         }
@@ -45,65 +44,39 @@ const StarWarsAppComponent = Relay.GenericContainer.create(Component, {
 
 
 
-function starWarsApp(){
+function starWarsApp() {
   return {
     restrict: 'E',
-    scope: {
+    scope: {},
+    bindToController: {
+      relayProps :'=',
     },
-    template: '<ol><li><h1>Faction name</h1><ol><li><star-wars-ship/></li></ol></li></ol>',
-    bindToController: true,
     controllerAs: 'vm',
-    controller: controllerFn
+    controller: controllerFn,
+    template: '<ol><li ng-repeat="faction in vm.relayData.factions"><h1>Faction name {{faction.name}}</h1>'
+    + '<ol><li ng-repeat="edge in faction.ships.edges"><star-wars-ship ship="edge.node"/></li></ol></li></ol>',
   };
 
-    function controllerFn($scope) {
-      const vm = this;
-      console.log('init app');
-      var props = {};
-      const route = new StarWarsAppHomeRoute({factionNames: ['empire', 'rebels']});
-      const rootContainer = new Relay.GenericRootContainer({
-        Component: StarWarsAppComponent,
-        forceFetch: false,
-        queryConfig: route
-      });
-      rootContainer.activate();
-    }
+  function controllerFn($scope, $rootScope) {
+
+    const updateCallback = (state) => {
+      if (!$rootScope.$$phase) {
+        $scope.$apply(() => {this.relayData = state.data;});
+      }else {
+        this.relayData = state.data;
+      }
+    };
+    const starWarsApp = new StarWarsAppComponent(this.relayProps || {}, updateCallback);
+
+    $scope.$watch('vm.relayProps', (newValue, oldValue) => {
+      if (newValue == null) {
+        return;
+      }
+      starWarsApp.update(this.relayProps);
+
+    }, false);
+
+  }
 }
 
-
-// class StarWarsApp extends React.Component {
-//   render() {
-//     var {factions} = this.props;
-//     return (
-//       <ol>
-//         {factions.map(faction => (
-//           <li>
-//             <h1>{faction.name}</h1>
-//             <ol>
-//               {faction.ships.edges.map(edge => (
-//                 <li><StarWarsShip ship={edge.node} /></li>
-//               ))}
-//             </ol>
-//           </li>
-//         ))}
-//       </ol>
-//     );
-//   }
-// }
-//
-// export default Relay.createContainer(StarWarsApp, {
-//   fragments: {
-//     factions: () => Relay.QL`
-//       fragment on Faction @relay(plural: true) {
-//         name,
-//         ships(first: 10) {
-//           edges {
-//             node {
-//               ${StarWarsShip.getFragment('ship')}
-//             }
-//           }
-//         }
-//       }
-//     `,
-//   },
-// });
+export default StarWarsAppComponent;
