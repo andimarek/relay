@@ -2,13 +2,27 @@
 
 require('configureForRelayOSS');
 
+jest
+  .dontMock('RelayContainerComparators')
+  .mock('warning');
+
+
 const Relay = require('Relay');
 const RelayRoute = require('RelayRoute');
 const RelayTestUtils = require('RelayTestUtils');
+const GraphQLStoreQueryResolver = require('GraphQLStoreQueryResolver');
 
 
 describe('GenericRelayContainer', () => {
   var MockComponent;
+  var MockContainer;
+
+  var mockBarFragment;
+  var mockBarPointer;
+  var mockFooFragment;
+  var mockFooPointer;
+  var mockRoute;
+
 
   var {getNode, getPointer} = RelayTestUtils;
 
@@ -17,7 +31,37 @@ describe('GenericRelayContainer', () => {
 
     };
 
+    MockContainer = Relay.GenericContainer.create(MockComponent, {
+      fragments: {
+        foo: jest.genMockFunction().mockImplementation(
+          () => Relay.QL`fragment on Node{id,name}`
+        ),
+        bar: jest.genMockFunction().mockImplementation(
+          () => Relay.QL`fragment on Node @relay(plural:true){id,name}`
+        ),
+      },
+    });
+
     jasmine.addMatchers(RelayTestUtils.matchers);
+
+    mockRoute = RelayRoute.genMockInstance();
+    mockFooFragment = getNode(MockContainer.getFragment('foo').getFragment({}));
+    mockFooPointer = getPointer('42', mockFooFragment);
+    mockBarFragment = getNode(MockContainer.getFragment('bar').getFragment());
+    mockBarPointer = getPointer(['42'], mockBarFragment);
+
+  });
+
+  it('creates resolvers for each query prop with a fragment pointer', () => {
+    const updateCallback = jest.genMockFunction();
+    const container = new MockContainer({},
+      updateCallback);
+    container.update({foo: mockFooPointer, route:mockRoute});
+
+    expect(GraphQLStoreQueryResolver.mock.instances.length).toBe(1);
+
+    container.update({foo: mockFooPointer, bar: [mockBarPointer], route:mockRoute});
+    expect(GraphQLStoreQueryResolver.mock.instances.length).toBe(2);
   });
 
   it('creates query for a container with variables', () => {
