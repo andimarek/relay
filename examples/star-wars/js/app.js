@@ -39,15 +39,13 @@ function app() {
       factionNames: ['empire', 'rebels'],
     });
     $rootScope.route = route;
-
-
-    const rootContainer = new Relay.GenericRootContainer(NgStarWarsApp, false, route);
-    rootContainer.activate(({data}) => {
+    const callback = ({data}) => {
       $scope.$apply(() => {
         vm.relayProps = data;
       });
-    });
-
+    };
+    const rootContainer = new Relay.GenericRootContainer(callback);
+    rootContainer.update(NgStarWarsApp, route);
   }
 }
 

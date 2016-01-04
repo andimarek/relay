@@ -28,10 +28,9 @@ describe('GenericRelayContainer', () => {
 
   beforeEach(() => {
     jest.resetModuleRegistry();
+
     MockComponent = {
-
     };
-
     MockContainer = Relay.GenericContainer.create(MockComponent, {
       fragments: {
         foo: jest.genMockFunction().mockImplementation(

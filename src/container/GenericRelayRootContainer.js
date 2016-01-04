@@ -40,30 +40,26 @@ export type ContainerCallback = (state: ContainerDataState) => void;
 
 
 class GenericRelayRootContainer {
-  Component: any;
-  queryConfig: RelayQueryConfigSpec;
-  forceFetch: boolean;
   callback: ContainerCallback;
+
+  Component: any;
+  route: RelayQueryConfigSpec;
 
   active: boolean;
   pendingRequest: ?Abortable;
 
 
-  constructor(Component: any, forceFetch: boolean,  queryConfig: RelayQueryConfigSpec) {
-    this.Component = Component;
-    this.forceFetch = forceFetch;
-    this.queryConfig = queryConfig;
-  }
-
-
-  activate(callback: ContainerCallback): void {
-    if (this.active) {
-      return;
-    }
-    this.active = true;
+  constructor(callback: ContainerCallback) {
     this.callback = callback;
-    this._runQueries();
   }
+
+  update(Component: Object, route: RelayQueryConfigSpec, forceFetch: boolean) {
+    this.active = true;
+    this.Component = Component;
+    this.route = route;
+    this._runQueries(forceFetch);
+  }
+
   cleanup(): void {
     if (this.pendingRequest) {
       this.pendingRequest.abort();
@@ -71,9 +67,8 @@ class GenericRelayRootContainer {
     this.active = false;
   }
 
-
-  _runQueries() {
-    const querySet = getRelayQueries(this.Component, this.queryConfig);
+  _runQueries(forceFetch: boolean) {
+    const querySet = getRelayQueries(this.Component, this.route);
     const onReadyStateChange = readyState => {
       if (!this.active) {
         return;
@@ -87,67 +82,23 @@ class GenericRelayRootContainer {
       }
       if (readyState.ready) {
         const data = {
-          route: this.queryConfig,
-          ...this.queryConfig.params,
+          route: this.route,
+          ...this.route.params,
           ...mapObject(querySet, createFragmentPointerForRoot),
         };
-        this.callback({data, ...readyState});
+        this._callCallback({data, ...readyState});
       }
     };
 
-    const request = this.forceFetch ?
+    const request = forceFetch ?
       RelayStore.forceFetch(querySet, onReadyStateChange) :
       RelayStore.primeCache(querySet, onReadyStateChange);
     this.pendingRequest = request;
   }
 
-  // _shouldUpdate(): boolean {
-  //   const {activeComponent, activeQueryConfig} = this.state;
-  //   return (
-  //     (!activeComponent || this.props.Component === activeComponent) &&
-  //     (!activeQueryConfig || this.props.queryConfig === activeQueryConfig)
-  //   );
-  // }
-  //
-  // /**
-  //  * @private
-  //  */
-  // _retry(): void {
-  //   const {readyState} = this.state;
-  //   invariant(
-  //     readyState && readyState.error,
-  //     'RelayRenderer: You tried to call `retry`, but the last request did ' +
-  //     'not fail. You can only call this when the last request has failed.'
-  //   );
-  //   this.setState(this._runQueries(this.props));
-  // }
-  //
-  // componentWillReceiveProps(nextProps: RelayRendererProps): void {
-  //   if (nextProps.Component !== this.props.Component ||
-  //       nextProps.queryConfig !== this.props.queryConfig ||
-  //       (nextProps.forceFetch && !this.props.forceFetch)) {
-  //     if (this.state.pendingRequest) {
-  //       this.state.pendingRequest.abort();
-  //     }
-  //     this.setState(this._runQueries(nextProps));
-  //   }
-  // }
-  //
-  // componentDidUpdate(
-  //   prevProps: RelayRendererProps,
-  //   prevState?: RelayRendererState
-  // ): void {
-  //   // `prevState` should exist; the truthy check is for Flow soundness.
-  //   const {readyState} = this.state;
-  //   if (readyState) {
-  //     if (!prevState || readyState !== prevState.readyState) {
-  //       this._handleReadyStateChange(readyState);
-  //     }
-  //   }
-  // }
-
-
-
+  _callCallback(state: ContainerDataState) {
+    this.callback(state);
+  }
 }
 
 function createFragmentPointerForRoot(query) {
