@@ -47,13 +47,13 @@ var RelayPublic = {
   Store: RelayStore,
 
   createContainer: RelayContainer.create,
+  createGenericContainer: GenericRelayContainer.create,
+  GenericRootContainer: GenericRelayRootContainer,
   createQuery: createRelayQuery,
   getQueries: getRelayQueries,
   injectNetworkLayer: RelayNetworkLayer.injectNetworkLayer,
   injectTaskScheduler: RelayTaskScheduler.injectScheduler,
   isContainer: isRelayContainer,
-  GenericRootContainer: GenericRelayRootContainer,
-  GenericContainer: GenericRelayContainer,
 };
 
 module.exports = RelayPublic;

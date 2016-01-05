@@ -17,7 +17,7 @@ import angular from 'angular';
 angular.module('starWarsShip', [])
 .directive('starWarsShip', starWarsShip);
 
-const StarWarsShipComponent = Relay.GenericContainer.create('StarWarsShip', {
+const StarWarsShipComponent = Relay.createGenericContainer('StarWarsShip', {
   fragments: {
     ship: () => Relay.QL`
        fragment on Ship {

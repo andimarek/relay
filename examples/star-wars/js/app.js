@@ -24,7 +24,7 @@ function app() {
     restrict: 'E',
     scope: {
     },
-    template: '<div>Hello World<star-wars-app relay-props="vm.relayProps"></star-wars-app></div>',
+    template: '<div><star-wars-app relay-props="vm.relayProps"></star-wars-app></div>',
     bindToController: true,
     controllerAs: 'vm',
     controller: controllerFn

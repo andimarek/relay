@@ -12,7 +12,7 @@ describe('GenericRelayRootContainer', () => {
   beforeEach(() => {
     mockRoute = RelayRoute.genMockInstance();
 
-    MockContainer = Relay.GenericContainer.create('MockComponent', {
+    MockContainer = Relay.createGenericContainer('MockComponent', {
       fragments: {
         foo: jest.genMockFunction().mockImplementation(
           () => Relay.QL`fragment on Node{id,name}`
