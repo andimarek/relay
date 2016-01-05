@@ -18,12 +18,7 @@ import StarWarsShip from './NgStarWarsShip';
 angular.module('starWarsApp', ['starWarsShip'])
  .directive('starWarsApp', starWarsApp);
 
-var Component = {
-  name: 'StarWarsApp',
-  starWarsShips: StarWarsShip,
-};
-
-const StarWarsAppComponent = Relay.GenericContainer.create(Component, {
+const StarWarsAppComponent = Relay.GenericContainer.create('StartWarsApp', {
   fragments: {
     factions: () => Relay.QL`
       fragment on Faction @relay(plural: true) {

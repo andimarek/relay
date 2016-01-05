@@ -11,10 +11,7 @@
  */
 
 import 'babel/polyfill';
-import React from 'react';
-import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
-import StarWarsApp from './components/StarWarsApp';
 import NgStarWarsApp from './components/NgStarWarsApp';
 import StarWarsAppHomeRoute from './routes/StarWarsAppHomeRoute';
 import angular from 'angular';
@@ -48,13 +45,3 @@ function app() {
     rootContainer.update(NgStarWarsApp, route);
   }
 }
-
-// ReactDOM.render(
-//   <Relay.RootContainer
-//     Component={StarWarsApp}
-//     route={new StarWarsAppHomeRoute({
-//       factionNames: ['empire', 'rebels'],
-//     })}
-//   />,
-//   document.getElementById('root')
-// );

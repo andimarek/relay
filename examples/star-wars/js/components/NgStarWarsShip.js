@@ -13,16 +13,11 @@
 
 import Relay from 'react-relay';
 import angular from 'angular';
-import StarWarsAppHomeRoute from '../routes/StarWarsAppHomeRoute';
 
 angular.module('starWarsShip', [])
 .directive('starWarsShip', starWarsShip);
 
-const Component = {
-  name: 'StarWarsShip',
-};
-
-const StarWarsShipComponent = Relay.GenericContainer.create(Component, {
+const StarWarsShipComponent = Relay.GenericContainer.create('StarWarsShip', {
   fragments: {
     ship: () => Relay.QL`
        fragment on Ship {

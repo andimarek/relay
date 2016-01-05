@@ -29,9 +29,7 @@ describe('GenericRelayContainer', () => {
   beforeEach(() => {
     jest.resetModuleRegistry();
 
-    MockComponent = {
-    };
-    MockContainer = Relay.GenericContainer.create(MockComponent, {
+    MockContainer = Relay.GenericContainer.create('MockComponent', {
       fragments: {
         foo: jest.genMockFunction().mockImplementation(
           () => Relay.QL`fragment on Node{id,name}`
@@ -72,7 +70,7 @@ describe('GenericRelayContainer', () => {
   });
 
   it('creates query for a container with variables', () => {
-    var MockProfilePhoto = Relay.GenericContainer.create(MockComponent, {
+    const Container = Relay.GenericContainer.create('ExampleComponent', {
       initialVariables: {
         testPhotoSize: '100',
       },
@@ -87,7 +85,7 @@ describe('GenericRelayContainer', () => {
       },
     });
     var fragment = getNode(
-      MockProfilePhoto.getFragment('photo'),
+      Container.getFragment('photo'),
       {}
     );
     expect(fragment).toEqualQueryNode(getNode(Relay.QL`
@@ -100,7 +98,7 @@ describe('GenericRelayContainer', () => {
   });
 
   it('update variables', () => {
-    var Container = Relay.GenericContainer.create(MockComponent, {
+    const Container = Relay.GenericContainer.create('ExampleComponent', {
       initialVariables: {
         testPhotoSize: '100',
       },
